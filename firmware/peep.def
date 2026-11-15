@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (c) 2026, Alec Dusheck
+//
+// REG_PULSE (regs.h): apply the mask to A directly instead of through a
+// scratch register.
+replace restart {
+	orl	a,%1
+	mov	%2,a
+	movx	@dptr,a
+	mov	a,%3
+	anl	a,%2
+	movx	@dptr,a
+} by {
+	orl	a,%1
+	movx	@dptr,a
+	anl	a,%3
+	movx	@dptr,a
+} if notUsed(%2)
