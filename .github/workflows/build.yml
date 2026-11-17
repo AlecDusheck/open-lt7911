@@ -11,14 +11,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
 
       # The Nix store (SDCC and the rest of the toolchain, plus the last build) in the GitHub Actions cache. The key
       # follows the inputs; on a miss the newest cache with the prefix is restored, so only what changed is rebuilt,
       # and the store is saved under the new key. Older caches for the same ref are purged.
-      - uses: nix-community/cache-nix-action@v7
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', '**/*.nix', 'build.env', 'firmware/**') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
@@ -39,7 +39,7 @@ jobs:
           cp -L result/* out/
           cat out/lt7911exc_fw.env
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lt7911exc-fw-${{ github.sha }}
           path: out/
