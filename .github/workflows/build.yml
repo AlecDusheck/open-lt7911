@@ -1,0 +1,45 @@
+name: Build firmware
+
+on:
+  push:
+
+permissions:
+  contents: read
+  actions: write # cache-nix-action purges superseded caches
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+
+      # The Nix store (SDCC and the rest of the toolchain, plus the last build) in the GitHub Actions cache. The key
+      # follows the inputs; on a miss the newest cache with the prefix is restored, so only what changed is rebuilt,
+      # and the store is saved under the new key. Older caches for the same ref are purged.
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', '**/*.nix', 'build.env', 'firmware/**') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 1G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+
+      # The default package: the image plus lt7911exc_fw.env (sha256, CRC, version). The build fails on the
+      # size and stack checks in firmware/default.nix.
+      - name: Build
+        run: nix build -L
+
+      - name: Collect image
+        run: |
+          mkdir out
+          cp -L result/* out/
+          cat out/lt7911exc_fw.env
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: lt7911exc-fw-${{ github.sha }}
+          path: out/
